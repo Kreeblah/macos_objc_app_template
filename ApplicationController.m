@@ -5,8 +5,7 @@
 
 -(void) applicationDidFinishLaunching:(NSNotification*) aNotification
 {
-	NSApplication* app = [NSApplication sharedApplication];
-	[app setActivationPolicy:NSApplicationActivationPolicyRegular];
+	[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
 
 	[self initializeMenus];
 
@@ -15,7 +14,7 @@
 	[window orderFrontRegardless];
 	[window setTitle:@"Window"];
 
-	[app activateIgnoringOtherApps:YES];
+	[NSApp activateIgnoringOtherApps:YES];
 }
 
 -(void) applicationWillTerminate:(NSNotification*) aNotification
@@ -300,6 +299,7 @@
 
 -(NSMenuItem*) initializeWindowMenu
 {
+	// More special handling for the Window menu
 	NSMenuItem* mainMenuWindowItem = [[NSMenuItem alloc] initWithTitle:@"Window" action:nil keyEquivalent:@""];
 	NSMenu* windowMenu = [[NSMenu alloc] initWithTitle:@"Window"];
 	[windowMenu addItemWithTitle:@"Minimize" action:@selector(performMiniaturize:) keyEquivalent:@"m"];
