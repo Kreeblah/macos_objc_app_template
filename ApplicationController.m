@@ -29,21 +29,36 @@
 
 -(void) initializeMenus
 {
-	NSApplication* app = [NSApplication sharedApplication];
+	NSMenu* mainMenu = [[NSMenu alloc] initWithTitle:@"Main Menu"];
 
-	NSMenu* mainMenu = [[NSMenu alloc] init];
+	[mainMenu addItem:[self initializeAppMenu]];
+	[mainMenu addItem:[self initializeFileMenu]];
+	[mainMenu addItem:[self initializeEditMenu]];
+	[mainMenu addItem:[self initializeFormatMenu]];
+	[mainMenu addItem:[self initializeViewMenu]];
+	[mainMenu addItem:[self initializeWindowMenu]];
+	[mainMenu addItem:[self initializeHelpMenu]];
 
-	NSMenuItem* mainMenuAppItem = [[NSMenuItem alloc] initWithTitle:APP_MENU_NSSTRING action:nil keyEquivalent:@""]; // The title on this one really doesn't matter, as it'll be overwritten by the name of the binary
+	[NSApp setMainMenu:mainMenu];
+}
+
+-(NSMenuItem*) initializeAppMenu
+{
+	// Even though it's being set here, the title on this one really doesn't matter, as it'll be overwritten by the name of the app at runtime
+	NSMenuItem* mainMenuAppItem = [[NSMenuItem alloc] initWithTitle:APP_MENU_NSSTRING action:nil keyEquivalent:@""];
 	NSMenu* appMenu = [[NSMenu alloc] initWithTitle:APP_MENU_NSSTRING];
 	[appMenu addItemWithTitle:[@"About " stringByAppendingString:APP_MENU_NSSTRING] action:@selector(orderFrontStandardAboutPanel:) keyEquivalent:@""];
 	[appMenu addItem:[NSMenuItem separatorItem]];
 	[appMenu addItemWithTitle:@"Preferences…" action:nil keyEquivalent:@","];
 	[appMenu addItem:[NSMenuItem separatorItem]];
+
+	// The app's Services menu needs to be assigned to that property of the running NSApplication object
 	NSMenu* appServicesMenu = [[NSMenu alloc] initWithTitle:@"Services"];
 	NSMenuItem* appServicesMenuItem = [[NSMenuItem alloc] initWithTitle:@"Services" action:nil keyEquivalent:@""];
 	[appServicesMenuItem setSubmenu:appServicesMenu];
-	[app setServicesMenu:appServicesMenu];
+	[NSApp setServicesMenu:appServicesMenu];
 	[appMenu addItem:appServicesMenuItem];
+
 	[appMenu addItem:[NSMenuItem separatorItem]];
 	[appMenu addItemWithTitle:[@"Hide " stringByAppendingString:APP_MENU_NSSTRING] action:@selector(hide:) keyEquivalent:@"h"];
 	NSMenuItem* hideOthersMenuItem = [[NSMenuItem alloc] initWithTitle:@"Hide Others" action:@selector(hideOtherApplications:) keyEquivalent:@"h"];
@@ -54,16 +69,23 @@
 	[appMenu addItemWithTitle:[@"Quit " stringByAppendingString:APP_MENU_NSSTRING] action:@selector(terminate:) keyEquivalent:@"q"];
 	[mainMenuAppItem setSubmenu:appMenu];
 
-	[mainMenu addItem:mainMenuAppItem];
+	return mainMenuAppItem;
+}
 
+-(NSMenuItem*) initializeFileMenu
+{
 	NSMenuItem* mainMenuFileItem = [[NSMenuItem alloc] initWithTitle:@"File" action:nil keyEquivalent:@""];
 	NSMenu* fileMenu = [[NSMenu alloc] initWithTitle:@"File"];
 	[fileMenu addItemWithTitle:@"New" action:@selector(newDocument:) keyEquivalent:@"n"];
 	[fileMenu addItemWithTitle:@"Open…" action:@selector(openDocument:) keyEquivalent:@"o"];
+
+	// The Open Recent menu also needs some special treatment here
 	NSMenuItem* openRecentMenuItem = [[NSMenuItem alloc] initWithTitle:@"Open Recent" action:nil keyEquivalent:@""];
 	NSMenu* openRecentMenu = [[NSMenu alloc] initWithTitle:@"Open Recent"];
+	[openRecentMenu performSelector:@selector(_setMenuName:) withObject:@"NSRecentDocumentsMenu"];
 	[openRecentMenu addItemWithTitle:@"Clear Menu" action:@selector(clearRecentDocuments:) keyEquivalent:@""];
 	[openRecentMenuItem setSubmenu:openRecentMenu];
+
 	[fileMenu addItem:openRecentMenuItem];
 	[fileMenu addItem:[NSMenuItem separatorItem]];
 	[fileMenu addItemWithTitle:@"Close" action:@selector(performClose:) keyEquivalent:@"w"];
@@ -77,8 +99,11 @@
 	[fileMenu addItemWithTitle:@"Print…" action:@selector(print:) keyEquivalent:@"p"];
 	[mainMenuFileItem setSubmenu:fileMenu];
 
-	[mainMenu addItem:mainMenuFileItem];
+	return mainMenuFileItem;
+}
 
+-(NSMenuItem*) initializeEditMenu
+{
 	NSMenuItem* mainMenuEditItem = [[NSMenuItem alloc] initWithTitle:@"Edit" action:nil keyEquivalent:@""];
 	NSMenu* editMenu = [[NSMenu alloc] initWithTitle:@"Edit"];
 	[editMenu addItemWithTitle:@"Undo" action:@selector(undo:) keyEquivalent:@"z"];
@@ -151,8 +176,11 @@
 	[editMenu addItem:speechMenuItem];
 	[mainMenuEditItem setSubmenu:editMenu];
 
-	[mainMenu addItem:mainMenuEditItem];
+	return mainMenuEditItem;
+}
 
+-(NSMenuItem*) initializeFormatMenu
+{
 	NSMenuItem* mainMenuFormatItem = [[NSMenuItem alloc] initWithTitle:@"Format" action:nil keyEquivalent:@""];
 	NSMenu* formatMenu = [[NSMenu alloc] initWithTitle:@"Format"];
 	NSMenuItem* fontMenuItem = [[NSMenuItem alloc] initWithTitle:@"Font" action:nil keyEquivalent:@""];
@@ -196,6 +224,8 @@
 	[baselineMenu addItemWithTitle:@"Raise" action:@selector(raiseBaseline:) keyEquivalent:@""];
 	[baselineMenu addItemWithTitle:@"Lower" action:@selector(raiseBaseline:) keyEquivalent:@""];
 	[baselineMenuItem setSubmenu:baselineMenu];
+
+	// More special handling for the font menu
 	[fontMenu addItem:baselineMenuItem];
 	[fontMenu addItem:[NSMenuItem separatorItem]];
 	[fontMenu addItemWithTitle:@"Show Colors" action:@selector(orderFrontColorPanel:) keyEquivalent:@"C"];
@@ -209,6 +239,7 @@
 	[fontMenuItem setSubmenu:fontMenu];
 	[[NSFontManager sharedFontManager] setFontMenu:fontMenu];
 	[formatMenu addItem:fontMenuItem];
+
 	NSMenu* textMenu = [[NSMenu alloc] initWithTitle:@"Text"];
 	NSMenuItem* textMenuItem = [[NSMenuItem alloc] initWithTitle:@"Text" action:nil keyEquivalent:@""];
 	[textMenu addItemWithTitle:@"Align Left" action:@selector(alignLeft:) keyEquivalent:@"{"];
@@ -216,6 +247,8 @@
 	[textMenu addItemWithTitle:@"Justify" action:@selector(alignJustified:) keyEquivalent:@""];
 	[textMenu addItemWithTitle:@"Align Right" action:@selector(alignRight:) keyEquivalent:@"}"];
 	[textMenu addItem:[NSMenuItem separatorItem]];
+
+	// The writing direction menus are a bit odd, in that the use disabled items as headers for submenus
 	NSMenu* writingDirectionMenu = [[NSMenu alloc] initWithTitle:@"Writing Direction"];
 	NSMenuItem* writingDirectionMenuItem = [[NSMenuItem alloc] initWithTitle:@"Writing Direction" action:nil keyEquivalent:@""];
 	NSMenuItem* paragraphMenuItemEntry = [[NSMenuItem alloc] initWithTitle:@"Paragraph" action:nil keyEquivalent:@""];
@@ -233,6 +266,7 @@
 	[writingDirectionMenu addItemWithTitle:@"	Right to Left" action:@selector(makeTextWritingDirectionRightToLeft:) keyEquivalent:@""];
 	[writingDirectionMenuItem setSubmenu:writingDirectionMenu];
 	[textMenu addItem:writingDirectionMenuItem];
+
 	[textMenu addItem:[NSMenuItem separatorItem]];
 	[textMenu addItemWithTitle:@"Show Ruler" action:@selector(toggleRuler:) keyEquivalent:@""];
 	[textMenu addItemWithTitle:@"Copy Ruler" action:@selector(copyRuler:) keyEquivalent:@""];
@@ -241,8 +275,11 @@
 	[formatMenu addItem:textMenuItem];
 	[mainMenuFormatItem setSubmenu:formatMenu];
 
-	[mainMenu addItem:mainMenuFormatItem];
+	return mainMenuFormatItem;
+}
 
+-(NSMenuItem*) initializeViewMenu
+{
 	NSMenuItem* mainMenuViewItem = [[NSMenuItem alloc] initWithTitle:@"View" action:nil keyEquivalent:@""];
 	NSMenu* viewMenu = [[NSMenu alloc] initWithTitle:@"View"];
 	NSMenuItem* showToolbarMenuItemEntry = [[NSMenuItem alloc] initWithTitle:@"Show Toolbar" action:@selector(toggleToolbarShown:) keyEquivalent:@"t"];
@@ -258,27 +295,32 @@
 	[viewMenu addItem:enterFullScreenMenuItemEntry];
 	[mainMenuViewItem setSubmenu:viewMenu];
 
-	[mainMenu addItem:mainMenuViewItem];
+	return mainMenuViewItem;
+}
 
+-(NSMenuItem*) initializeWindowMenu
+{
 	NSMenuItem* mainMenuWindowItem = [[NSMenuItem alloc] initWithTitle:@"Window" action:nil keyEquivalent:@""];
 	NSMenu* windowMenu = [[NSMenu alloc] initWithTitle:@"Window"];
 	[windowMenu addItemWithTitle:@"Minimize" action:@selector(performMiniaturize:) keyEquivalent:@"m"];
 	[windowMenu addItemWithTitle:@"Zoom" action:@selector(performZoom:) keyEquivalent:@""];
 	[windowMenu addItem:[NSMenuItem separatorItem]];
 	[windowMenu addItemWithTitle:@"Bring All to Front" action:@selector(arrangeInFront:) keyEquivalent:@""];
-	[app setWindowsMenu:windowMenu];
+	[NSApp setWindowsMenu:windowMenu];
 	[mainMenuWindowItem setSubmenu:windowMenu];
 
-	[mainMenu addItem:mainMenuWindowItem];
+	return mainMenuWindowItem;
+}
 
+-(NSMenuItem*) initializeHelpMenu
+{
+	// The Help menu is apparently magic
 	NSMenuItem* mainMenuHelpItem = [[NSMenuItem alloc] initWithTitle:@"Help" action:nil keyEquivalent:@""];
 	NSMenu* helpMenu = [[NSMenu alloc] initWithTitle:@"Help"];
 	[helpMenu addItemWithTitle:[APP_MENU_NSSTRING stringByAppendingString:@" Help"] action:@selector(showHelp:) keyEquivalent:@"?"];
 	[mainMenuHelpItem setSubmenu:helpMenu];
 
-	[mainMenu addItem:mainMenuHelpItem];
-
-	[app setMainMenu:mainMenu];
+	return mainMenuHelpItem;
 }
 
 @end
